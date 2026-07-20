@@ -11,11 +11,11 @@ export const slot4TaskSupport = {
 } satisfies Record<TaskKey, boolean>;
 
 export const slot4TaskNotes = {
-  article: "Article pages and article detail backlinks",
-  classified: "Classified ads pages and detail backlinks",
-  sbm: "Social bookmarking pages and detail backlinks",
-  profile: "Profile/user pages",
-  pdf: "PDF/document pages and detail backlinks",
-  listing: "Business listing pages and detail backlinks",
-  image: "Image/gallery pages and detail backlinks",
+  article: "Field notes archive and article detail backlinks",
+  classified: "Notice board pages and detail backlinks",
+  sbm: "Saved-shelf pages and detail backlinks",
+  profile: "People index pages",
+  pdf: "Reference Library shelf and detail backlinks",
+  listing: "Local Directory shelf and detail backlinks",
+  image: "Image stories and detail backlinks",
 } satisfies Record<TaskKey, string>;

@@ -6,41 +6,34 @@ import { getFactoryState } from '@/design/factory/get-factory-state'
 import { getProductKind } from '@/design/factory/get-product-kind'
 import { EditableContactLeadForm } from '@/editable/components/EditableContactLeadForm'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
-
-const tone = {
-  shell: 'bg-[var(--slot4-page-bg)] text-[var(--slot4-page-text)]',
-  panel: 'border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)]',
-  soft: 'border border-[var(--editable-border)] bg-[var(--slot4-panel-bg)]',
-  muted: 'text-[var(--slot4-muted-text)]',
-  action: 'bg-[var(--slot4-accent-fill)] text-[var(--slot4-on-accent)] hover:opacity-90',
-}
+import { EditableReveal } from '@/editable/shell/EditableReveal'
 
 function getLanes(kind: ReturnType<typeof getProductKind>) {
   if (kind === 'directory') {
     return [
-      { icon: Building2, title: 'Business onboarding', body: 'Add listings, verify operational details, and bring your business surface live quickly.' },
-      { icon: Phone, title: 'Partnership support', body: 'Talk through bulk publishing, local growth, and operational setup questions.' },
-      { icon: MapPin, title: 'Coverage requests', body: 'Need a new geography or category lane? We can shape the directory around it.' },
+      { icon: Building2, title: 'Get listed', body: 'Add your place to the directory. We manually review every submission before it goes live.' },
+      { icon: Phone, title: 'Partnership questions', body: 'Talk through bulk publishing, local coverage, and neighborhood collaborations.' },
+      { icon: MapPin, title: 'Coverage requests', body: 'Need a new geography or category shelf? Tell us where the gap is.' },
     ]
   }
   if (kind === 'editorial') {
     return [
-      { icon: FileText, title: 'Editorial submissions', body: 'Pitch essays, columns, and long-form ideas that fit the publication.' },
-      { icon: Mail, title: 'Newsletter partnerships', body: 'Coordinate sponsorships, collaborations, and issue-level campaigns.' },
-      { icon: Sparkles, title: 'Contributor support', body: 'Get help with voice, formatting, and publication workflow questions.' },
+      { icon: FileText, title: 'Submit a paper', body: 'Pitch a report, whitepaper, or guide worth filing in the Reference Library.' },
+      { icon: Mail, title: 'Editorial partnerships', body: 'Coordinate collaborations, cross-posts, and reference releases.' },
+      { icon: Sparkles, title: 'Contributor questions', body: 'Get help with formatting, voice, and the review workflow.' },
     ]
   }
   if (kind === 'visual') {
     return [
-      { icon: ImageIcon, title: 'Creator collaborations', body: 'Discuss gallery launches, creator features, and visual campaigns.' },
-      { icon: Sparkles, title: 'Licensing and use', body: 'Reach out about usage rights, commercial requests, and visual partnerships.' },
-      { icon: Mail, title: 'Media kits', body: 'Request creator decks, editorial support, or visual feature placement.' },
+      { icon: ImageIcon, title: 'Creator collaborations', body: 'Discuss image essays, creator features, and gallery launches.' },
+      { icon: Sparkles, title: 'Licensing &amp; usage', body: 'Reach out about usage rights, commercial requests, and partnerships.' },
+      { icon: Mail, title: 'Media kits', body: 'Request our media pack, editor decks, or feature placement details.' },
     ]
   }
   return [
-    { icon: Bookmark, title: 'Collection submissions', body: 'Suggest resources, boards, and links that deserve a place in the library.' },
-    { icon: Mail, title: 'Resource partnerships', body: 'Coordinate curation projects, reference pages, and link programs.' },
-    { icon: Sparkles, title: 'Curator support', body: 'Need help organizing shelves, collections, or profile-connected boards?' },
+    { icon: Bookmark, title: 'Suggest a resource', body: 'Send a link, tool, or reference worth keeping on the saved shelf.' },
+    { icon: Mail, title: 'Curation partnerships', body: 'Coordinate reading lists, reference pages, and link programs.' },
+    { icon: Sparkles, title: 'Editor questions', body: 'Need help organizing collections or getting a resource surfaced?' },
   ]
 }
 
@@ -48,29 +41,52 @@ export default function ContactPage() {
   const { recipe } = getFactoryState()
   const productKind = getProductKind(recipe)
   const lanes = getLanes(productKind)
+  const container = 'mx-auto w-full max-w-[var(--editable-container)] px-5 sm:px-8 lg:px-10'
 
   return (
-    <EditableSiteShell className={tone.shell}>
-      <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--slot4-accent)]">{pagesContent.contact.eyebrow}</p>
-            <h1 className="editable-display mt-4 text-5xl font-semibold tracking-[-0.02em]">{pagesContent.contact.title}</h1>
-            <p className={`mt-5 max-w-2xl text-sm leading-8 ${tone.muted}`}>{pagesContent.contact.description}</p>
-            <div className="mt-8 space-y-4">
-              {lanes.map((lane) => (
-                <div key={lane.title} className={`rounded-sm p-5 ${tone.soft}`}>
-                  <lane.icon className="h-5 w-5 text-[var(--slot4-accent)]" />
-                  <h2 className="editable-display mt-3 text-xl font-semibold">{lane.title}</h2>
-                  <p className={`mt-2 text-sm leading-7 ${tone.muted}`}>{lane.body}</p>
-                </div>
+    <EditableSiteShell>
+      <main className="min-h-screen bg-[var(--slot4-page-bg)] text-[var(--slot4-page-text)]">
+        <section className="relative overflow-hidden bg-[var(--slot4-accent-fill)] text-white">
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(86,72,228,0.9),rgba(4,4,4,0.35))]" />
+          <div className={`relative ${container} pb-20 pt-24 sm:pb-24 sm:pt-32 lg:pb-28 lg:pt-40`}>
+            <EditableReveal className="editable-mono text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--slot4-accent-secondary)]">
+              {pagesContent.contact.eyebrow}
+            </EditableReveal>
+            <EditableReveal index={1}>
+              <h1 className="editable-uppercase mt-8 max-w-4xl text-balance text-[2.5rem] font-bold leading-[0.95] sm:text-[4rem] lg:text-[5.5rem]">
+                {pagesContent.contact.title}
+              </h1>
+            </EditableReveal>
+            <EditableReveal index={2}>
+              <p className="mt-8 max-w-2xl text-base leading-8 text-white/85 sm:text-lg">{pagesContent.contact.description}</p>
+            </EditableReveal>
+          </div>
+        </section>
+
+        <section className={`${container} py-20 sm:py-24 lg:py-28`}>
+          <div className="grid gap-14 lg:grid-cols-[1fr_1.2fr] lg:items-start">
+            <div className="border-t border-[var(--editable-border)]">
+              {lanes.map((lane, i) => (
+                <EditableReveal key={lane.title} index={i}>
+                  <div className="flex items-start gap-6 border-b border-[var(--editable-border)] py-8">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--slot4-accent-soft)] text-[var(--slot4-accent-fill)]">
+                      <lane.icon className="h-5 w-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <h2 className="editable-display text-xl font-semibold text-[var(--slot4-page-text)]">{lane.title}</h2>
+                      <p className="mt-2 text-[15px] leading-7 text-[var(--slot4-muted-text)]" dangerouslySetInnerHTML={{ __html: lane.body }} />
+                    </div>
+                  </div>
+                </EditableReveal>
               ))}
             </div>
-          </div>
 
-          <div className={`rounded-sm p-7 ${tone.panel}`}>
-            <h2 className="editable-display text-2xl font-semibold">{pagesContent.contact.formTitle}</h2>
-            <EditableContactLeadForm />
+            <EditableReveal>
+              <div className="border border-[var(--editable-border)] bg-[var(--slot4-panel-bg)] p-8 sm:p-10">
+                <h2 className="editable-uppercase text-[2rem] font-semibold leading-[1] sm:text-[2.5rem]">{pagesContent.contact.formTitle}</h2>
+                <EditableContactLeadForm />
+              </div>
+            </EditableReveal>
           </div>
         </section>
       </main>

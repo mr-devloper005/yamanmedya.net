@@ -2,19 +2,13 @@ import type { CSSProperties } from 'react'
 import type { TaskKey } from '@/lib/site-config'
 
 /*
-  Yelp-style task surfaces.
-
-  Every task (archive + detail) now shares one cohesive premium identity:
-  clean white surfaces, the signature Yelp red accent, hairline gray borders
-  and a single crisp sans-serif — exactly like Yelp. Per-task copy (kicker /
-  note) still varies so each section keeps a little voice, but the visual
-  language is unified. Tokens are delivered via CSS variables (`--tk-*`).
+  Task surfaces — one shared visual language (violet / lime / near-black).
+  Only kicker + note vary per task. The `kicker` string is also the user-facing
+  display label for that task (never render the raw task key).
 */
 
 export type TaskTheme = {
-  /** short flavour word shown as an eyebrow kicker */
   kicker: string
-  /** one-line mood note for the page intro */
   note: string
   dark: boolean
   fontDisplay: string
@@ -32,41 +26,69 @@ export type TaskTheme = {
   radius: string
 }
 
-const YELP_FONT = "'Inter', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif"
+const DISPLAY = "'Space Grotesk', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif"
+const BODY = "'Manrope', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif"
 
-// Shared Yelp palette — every task inherits this; only kicker/note differ.
 const base = {
   dark: false,
-  fontDisplay: YELP_FONT,
-  fontBody: YELP_FONT,
+  fontDisplay: DISPLAY,
+  fontBody: BODY,
   bg: '#ffffff',
   surface: '#ffffff',
-  raised: '#f7f7f7',
-  text: '#1a1a1a',
-  muted: '#6b6b6b',
+  raised: '#f1f3f5',
+  text: '#040404',
+  muted: '#666666',
   line: '#e6e6e6',
-  accent: '#d32323',
-  accentSoft: '#fdecec',
+  accent: '#5648e4',
+  accentSoft: '#eeecfb',
   onAccent: '#ffffff',
-  glow: 'rgba(211,35,35,0.06)',
-  radius: '0.75rem',
+  glow: 'rgba(86,72,228,0.10)',
+  radius: '0px',
 } satisfies Omit<TaskTheme, 'kicker' | 'note'>
 
 export const taskThemes: Record<TaskKey, TaskTheme> = {
-  article: { ...base, kicker: 'Articles', note: 'In-depth reads, guides and stories worth your time.' },
-  listing: { ...base, kicker: 'Businesses', note: 'Find, compare and connect with local businesses.' },
-  classified: { ...base, kicker: 'Marketplace', note: 'Fresh offers and listings, ready to act on.' },
-  image: { ...base, kicker: 'Photos', note: 'A visual feed of standout images and galleries.' },
-  sbm: { ...base, kicker: 'Bookmarks', note: 'Curated resources and links worth saving.' },
-  pdf: { ...base, kicker: 'Documents', note: 'Downloadable guides, reports and references.' },
-  profile: { ...base, kicker: 'People', note: 'Discover creators, businesses and profiles.' },
+  article: {
+    ...base,
+    kicker: 'Field notes',
+    note: 'Essays, guides, and long-reads worth a proper sit-down.',
+  },
+  listing: {
+    ...base,
+    kicker: 'Local Directory',
+    note: 'Discover independent operators, studios, and neighborhood addresses.',
+  },
+  classified: {
+    ...base,
+    kicker: 'Notice board',
+    note: 'Time-sensitive offers, opportunities, and things to act on now.',
+  },
+  image: {
+    ...base,
+    kicker: 'Visual desk',
+    note: 'A gallery-first read of standout images and photo essays.',
+  },
+  sbm: {
+    ...base,
+    kicker: 'Saved shelf',
+    note: 'Curated links, references, and resources kept for later.',
+  },
+  pdf: {
+    ...base,
+    kicker: 'Reference Library',
+    note: 'Downloadable guides, whitepapers, and reference papers.',
+  },
+  profile: {
+    ...base,
+    kicker: 'People index',
+    note: 'The makers, businesses, and studios behind the directory.',
+  },
 }
 
 export function getTaskTheme(task: TaskKey): TaskTheme {
   return taskThemes[task] || taskThemes.article
 }
 
-/** All `--tk-*` tokens + font overrides for a task surface, ready for `style`. */
+/** All `--tk-*` tokens + font overrides for a task surface. */
 export function taskThemeStyle(task: TaskKey): CSSProperties {
   const t = getTaskTheme(task)
   return {
@@ -81,12 +103,30 @@ export function taskThemeStyle(task: TaskKey): CSSProperties {
     '--tk-on-accent': t.onAccent,
     '--tk-glow': t.glow,
     '--tk-radius': t.radius,
-    // Re-point the shared article-body accent vars so post HTML (headings,
-    // links) inherits this task's accent instead of the global site accent.
     '--slot4-accent': t.accent,
     '--slot4-accent-fill': t.accent,
     '--editable-font-display': t.fontDisplay,
     '--editable-font-body': t.fontBody,
     fontFamily: t.fontBody,
   } as CSSProperties
+}
+
+/** User-facing display label for a task (masks the underlying task.label). */
+export function taskDisplayLabel(task: TaskKey): string {
+  return getTaskTheme(task).kicker
+}
+
+/** Short user-facing description for a task (masks task.description). */
+export const taskDisplayDescription: Record<TaskKey, string> = {
+  article: 'Long-form field notes and guides.',
+  listing: 'Independent places, hand-checked.',
+  classified: 'Short-lived notices and offers.',
+  image: 'Small photo essays and image stories.',
+  sbm: 'Saved links and reference tools.',
+  pdf: 'Downloadable reference papers.',
+  profile: 'People and studios behind the index.',
+}
+
+export function taskDisplayInfo(task: TaskKey): string {
+  return taskDisplayDescription[task] || getTaskTheme(task).note
 }

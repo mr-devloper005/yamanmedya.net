@@ -1,139 +1,266 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, Search, UserPlus, LogIn, X, PlusCircle } from 'lucide-react'
+import { Menu, Search, X, ArrowUpRight, LogOut, LogIn, PlusCircle, Sparkles, Home, Send } from 'lucide-react'
 import { SITE_CONFIG } from '@/lib/site-config'
 import { globalContent } from '@/editable/content/global.content'
 import { useEditableLocalAuthSession } from '@/editable/components/EditableLocalAuthForms'
 
+const STATIC_LINKS = [
+  { label: 'Home', href: '/', icon: Home },
+  { label: 'About', href: '/about', icon: Sparkles },
+  { label: 'Contact', href: '/contact', icon: Send },
+  { label: 'Submit', href: '/create', icon: PlusCircle, cta: true },
+]
+
+const TICKER_ITEMS = [
+  'Directory · Reference Library',
+  'Manually reviewed entries',
+  'No algorithm · No paid placement',
+  'Curated fortnightly',
+  'Two shelves. Real signal.',
+]
+
 export function EditableNavbar() {
   const [open, setOpen] = useState(false)
+  const [progress, setProgress] = useState(0)
   const pathname = usePathname()
   const { session, logout } = useEditableLocalAuthSession()
-  const navItems = useMemo(
-    () => SITE_CONFIG.tasks.filter((task) => task.enabled).map((task) => ({ label: task.label, href: task.route })),
-    []
-  )
+
+  // Scroll progress bar (grows 0 → 100% down the page).
+  useEffect(() => {
+    const compute = () => {
+      const doc = document.documentElement
+      const scrollable = doc.scrollHeight - doc.clientHeight
+      const pct = scrollable > 0 ? (doc.scrollTop / scrollable) * 100 : 0
+      setProgress(Math.max(0, Math.min(100, pct)))
+    }
+    compute()
+    window.addEventListener('scroll', compute, { passive: true })
+    window.addEventListener('resize', compute)
+    return () => {
+      window.removeEventListener('scroll', compute)
+      window.removeEventListener('resize', compute)
+    }
+  }, [])
+
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
 
   return (
-    <header className="sticky top-0 z-50 bg-[var(--editable-nav-bg)]/96 text-[var(--editable-nav-text)] backdrop-blur-md">
-      <div className="h-[3px] bg-[linear-gradient(90deg,transparent_0%,var(--slot4-accent)_20%,var(--slot4-accent)_80%,transparent_100%)]" />
+    <header className="sticky top-0 z-50 border-b border-[var(--editable-border)] bg-[var(--editable-nav-bg)]/95 text-[var(--editable-nav-text)] backdrop-blur-md">
+      {/* ── Top ticker: infinite marquee announcing the two shelves ── */}
+      <div className="editable-marquee-wrap overflow-hidden border-b border-[var(--editable-border)] bg-[var(--slot4-page-text)] text-white">
+        <div className="editable-marquee-track py-2">
+          {Array.from({ length: 2 }).map((_, dup) => (
+            <span key={dup} className="editable-marquee-segment flex shrink-0 items-center gap-12">
+              {TICKER_ITEMS.map((item, i) => (
+                <span key={`${dup}-${i}`} className="editable-mono flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.28em] text-white/85">
+                  <Sparkles className="h-3 w-3 text-[var(--slot4-accent-secondary)]" />
+                  {item}
+                </span>
+              ))}
+            </span>
+          ))}
+        </div>
+      </div>
 
-      <nav className="mx-auto flex min-h-[76px] w-full max-w-[var(--editable-container)] items-center gap-5 px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="group flex shrink-0 items-center gap-3 border-r border-[var(--editable-border)] pr-5">
-          <span className="flex h-11 w-11 items-center justify-center border border-[var(--slot4-accent)]/45 bg-[var(--slot4-surface-bg)] transition group-hover:border-[var(--slot4-accent)]">
-            <img src="/favicon.png?v=20260413" alt={SITE_CONFIG.name} className="h-8 w-8 object-contain" />
+      <nav className="mx-auto grid min-h-[76px] w-full max-w-[var(--editable-container)] grid-cols-[auto_1fr_auto] items-center gap-6 px-5 sm:px-8 lg:px-10">
+        <Link href="/" className="group flex shrink-0 items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center filter grayscale-100 rounded-full bg-[var(--slot4-accent-fill)] text-white transition group-hover:bg-[var(--slot4-page-text)] group-hover:grayscale-0">
+            <img src="/favicon.png?v=20260413" alt={SITE_CONFIG.name} className="h-9 w-9 object-contain" />
           </span>
           <span className="hidden min-w-0 md:block">
-            <span className="editable-display block max-w-[200px] truncate text-xl font-semibold leading-none tracking-[0.01em]">{SITE_CONFIG.name}</span>
-            <span className="mt-1 block max-w-[200px] truncate text-[10px] font-medium uppercase tracking-[0.26em] text-[var(--slot4-muted-text)]">
+            <span className="editable-display block max-w-[240px] truncate text-lg font-semibold leading-none tracking-[0.005em]">
+              {SITE_CONFIG.name}
+            </span>
+            <span className="editable-mono mt-1 block max-w-[240px] truncate text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--slot4-muted-text)]">
               {globalContent.nav?.tagline || SITE_CONFIG.tagline}
             </span>
           </span>
         </Link>
 
-        <div className="hidden items-stretch gap-0 lg:flex">
-          {navItems.slice(0, 5).map((item) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`relative flex items-center px-4 text-[11px] font-semibold uppercase tracking-[0.22em] transition ${
-                  active ? 'text-[var(--slot4-accent)]' : 'text-[var(--slot4-muted-text)] hover:text-[var(--slot4-page-text)]'
-                }`}
-              >
-                {item.label}
-                {active ? <span className="absolute inset-x-3 bottom-0 h-[2px] bg-[var(--slot4-accent)]" /> : null}
-              </Link>
-            )
-          })}
+        {/* Center nav — visually centered via the middle grid column */}
+        <div className="hidden items-center justify-center gap-1 lg:flex">
+          <div className="flex items-center gap-1 rounded-full border border-[var(--editable-border)] bg-[var(--slot4-panel-bg)]/50 p-1 backdrop-blur">
+            {STATIC_LINKS.map((item) => {
+              const active = isActive(item.href)
+              const Icon = item.icon
+              if (item.cta) {
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`editable-mono group inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] transition ${
+                      active
+                        ? 'bg-[var(--slot4-accent-fill)] text-white'
+                        : 'bg-[var(--slot4-page-text)] text-white hover:bg-[var(--slot4-accent-fill)]'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span>{item.label}</span>
+                  </Link>
+                )
+              }
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`editable-mono group relative inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] transition ${
+                    active
+                      ? 'bg-white text-[var(--slot4-page-text)] shadow-[0_1px_3px_rgba(4,4,4,0.08)]'
+                      : 'text-[var(--slot4-muted-text)] hover:bg-white hover:text-[var(--slot4-page-text)]'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span>{item.label}</span>
+                  {active ? (
+                    <span className="absolute inset-x-4 -bottom-[3px] h-[2px] rounded-full bg-[var(--slot4-accent-fill)]" />
+                  ) : null}
+                </Link>
+              )
+            })}
+          </div>
         </div>
 
-        <form action="/search" className="mx-auto hidden min-w-0 flex-1 justify-center md:flex">
-          <label className="flex w-full max-w-md items-center gap-2 border-b border-[var(--slot4-accent)]/30 pb-2 transition focus-within:border-[var(--slot4-accent)]">
-            <Search className="h-4 w-4 shrink-0 text-[var(--slot4-accent)]" />
-            <input
-              name="q"
-              type="search"
-              placeholder="Search posts"
-              className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-[var(--slot4-muted-text)]"
-            />
-          </label>
-        </form>
+        <div className="flex shrink-0 items-center gap-2 justify-self-end">
+          {/* Search — with ⌘K hint on desktop */}
+          <Link
+            href="/search"
+            aria-label="Search the index"
+            className="group hidden h-10 items-center gap-2 rounded-full border border-[var(--editable-border)] px-3.5 text-[var(--slot4-page-text)] transition hover:border-[var(--slot4-page-text)] hover:bg-[var(--slot4-page-text)] hover:text-white md:inline-flex"
+          >
+            <Search className="h-4 w-4" />
+            <span className="editable-mono text-[10px] font-semibold uppercase tracking-[0.22em]">Search</span>
+            <span className="editable-mono rounded-md border border-current/25 px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.14em] opacity-60">⌘K</span>
+          </Link>
+          <Link
+            href="/search"
+            aria-label="Search"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--editable-border)] text-[var(--slot4-page-text)] transition hover:border-[var(--slot4-page-text)] hover:bg-[var(--slot4-page-text)] hover:text-white md:hidden"
+          >
+            <Search className="h-4 w-4" />
+          </Link>
 
-        <div className="ml-auto flex shrink-0 items-center gap-2">
           {session ? (
             <>
               <Link
                 href="/create"
-                className="hidden items-center gap-2 border border-[var(--slot4-accent)] bg-[var(--editable-cta-bg)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--editable-cta-text)] transition hover:opacity-90 sm:inline-flex"
+                className="editable-mono hidden items-center gap-2 rounded-full bg-[var(--slot4-accent-fill)] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white transition hover:brightness-110 sm:inline-flex"
               >
-                <PlusCircle className="h-3.5 w-3.5" /> Create
+                <PlusCircle className="h-3.5 w-3.5" /> Submit
               </Link>
               <button
                 type="button"
                 onClick={logout}
-                className="hidden items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--slot4-muted-text)] transition hover:text-[var(--slot4-page-text)] sm:inline-flex"
+                aria-label="Log out"
+                className="hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--editable-border)] text-[var(--slot4-muted-text)] transition hover:border-[var(--slot4-page-text)] hover:text-[var(--slot4-page-text)] sm:inline-flex"
               >
-                Logout
+                <LogOut className="h-4 w-4" />
               </button>
             </>
           ) : (
             <>
               <Link
                 href="/login"
-                className="hidden items-center gap-2 border border-[var(--editable-border)] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--slot4-muted-text)] transition hover:border-[var(--slot4-accent)]/40 hover:text-[var(--slot4-page-text)] sm:inline-flex"
+                className="editable-mono hidden items-center gap-1.5 rounded-full border border-[var(--editable-border)] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--slot4-page-text)] transition hover:border-[var(--slot4-page-text)] sm:inline-flex"
               >
-                <LogIn className="h-3.5 w-3.5" /> Login
+                <LogIn className="h-3.5 w-3.5" /> Sign in
               </Link>
               <Link
                 href="/signup"
-                className="hidden items-center gap-2 border border-[var(--slot4-accent)] bg-[var(--editable-cta-bg)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--editable-cta-text)] transition hover:opacity-90 sm:inline-flex"
+                className="editable-mono group hidden items-center gap-1.5 rounded-full bg-[var(--slot4-page-text)] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-[var(--slot4-accent-fill)] sm:inline-flex"
               >
-                <UserPlus className="h-3.5 w-3.5" /> Sign up
+                Get started <ArrowUpRight className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
             </>
           )}
           <button
             type="button"
             onClick={() => setOpen((value) => !value)}
-            className="border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] p-2 lg:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--editable-border)] lg:hidden"
             aria-label="Toggle menu"
+            aria-expanded={open}
           >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
         </div>
       </nav>
 
-      <div className="h-px bg-[var(--editable-border)]" />
+      {/* Scroll-progress indicator — hairline violet that fills as you read. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-transparent">
+        <div
+          className="h-full origin-left bg-[var(--slot4-accent-fill)] transition-[width] duration-150 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
 
       {open ? (
-        <div className="border-t border-[var(--editable-border)] bg-[var(--editable-nav-bg)] px-4 py-5 lg:hidden">
-          <form action="/search" className="mb-5 flex items-center gap-2 border-b border-[var(--slot4-accent)]/30 pb-2">
-            <Search className="h-4 w-4 text-[var(--slot4-accent)]" />
-            <input name="q" type="search" placeholder="Search posts" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--slot4-muted-text)]" />
-          </form>
+        <div className="border-t border-[var(--editable-border)] bg-[var(--editable-nav-bg)] px-5 py-6 lg:hidden">
           <div className="grid gap-1">
-            {[{ label: 'Home', href: '/' }, ...navItems, { label: 'Contact', href: '/contact' }, ...(session ? [{ label: 'Create', href: '/create' }] : [{ label: 'Login', href: '/login' }, { label: 'Sign up', href: '/signup' }])].map((item) => {
-              const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
+            {STATIC_LINKS.map((item) => {
+              const active = isActive(item.href)
+              const Icon = item.icon
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className={`border-l-2 px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] ${
-                    active
-                      ? 'border-[var(--slot4-accent)] bg-[var(--slot4-surface-bg)] text-[var(--slot4-accent)]'
-                      : 'border-transparent text-[var(--slot4-muted-text)] hover:border-[var(--slot4-accent)]/40 hover:bg-[var(--slot4-surface-bg)]'
+                  className={`editable-mono flex items-center justify-between rounded-full px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.2em] transition ${
+                    active || item.cta
+                      ? 'bg-[var(--slot4-accent-fill)] text-white'
+                      : 'text-[var(--slot4-muted-text)] hover:bg-[var(--slot4-panel-bg)] hover:text-[var(--slot4-page-text)]'
                   }`}
                 >
-                  {item.label}
+                  <span className="inline-flex items-center gap-3">
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </span>
+                  <ArrowUpRight className="h-4 w-4" />
                 </Link>
               )
             })}
+            <Link
+              href="/search"
+              onClick={() => setOpen(false)}
+              className="editable-mono flex items-center justify-between rounded-full px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--slot4-muted-text)] transition hover:bg-[var(--slot4-panel-bg)] hover:text-[var(--slot4-page-text)]"
+            >
+              <span>Search</span>
+              <Search className="h-4 w-4" />
+            </Link>
+            {session ? (
+              <button
+                type="button"
+                onClick={() => {
+                  logout()
+                  setOpen(false)
+                }}
+                className="editable-mono flex items-center justify-between rounded-full px-5 py-3 text-left text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--slot4-muted-text)] hover:text-[var(--slot4-page-text)]"
+              >
+                <span>Logout</span>
+                <LogOut className="h-4 w-4" />
+              </button>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="editable-mono flex items-center justify-between rounded-full border border-[var(--editable-border)] px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--slot4-page-text)]"
+                >
+                  <span>Sign in</span>
+                  <LogIn className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setOpen(false)}
+                  className="editable-mono flex items-center justify-between rounded-full bg-[var(--slot4-page-text)] px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.2em] text-white"
+                >
+                  <span>Get started</span>
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </>
+            )}
           </div>
         </div>
       ) : null}
